@@ -1,8 +1,8 @@
 ﻿{
    "Name": "Night Chicken",
    "Author": "YonKuma",
-   "Version": "1.0-alpha.1",
-   "Description": "<One or two sentences about the mod>",
+   "Version": "1.0-alpha.2",
+   "Description": "Gets rid of mood drain for animals that are inside after 6pm.",
    "UniqueID": "YonKuma.NightChicken",
    "EntryDll": "NightChicken.dll",
    "UpdateKeys": []

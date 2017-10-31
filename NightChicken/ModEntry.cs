@@ -23,38 +23,46 @@ namespace NightChicken
 
         private void ControlEvents_TimeOfDayChanged(object sender, EventArgsIntChanged e)
         {
-            // TODO: At 6pm, record animals' happiness
-            if (e.NewInt == 1750)
+            // Happiness is calculated correctly in the winter, so only fix it if it's not winter
+            if (!Game1.currentSeason.Equals("winter"))
             {
-                happinessMap = new Dictionary<long, byte>();
-                foreach (FarmAnimal animal in Game1.getFarm().getAllFarmAnimals())
+                // At 5:50pm, record animals' happiness
+                if (e.NewInt == 1750)
                 {
-                    happinessMap[animal.myID] = animal.happiness;
-                }
-            }
-            // TODO: Each time change after that, if the happiness has lowered, reset it to the recorded value
-            if (e.NewInt >= 1800)
-            {
-                foreach (Building building in Game1.getFarm().buildings)
-                {
-                    if (building.indoors != null && building.indoors.GetType() == typeof(AnimalHouse))
+                    happinessMap = new Dictionary<long, byte>();
+                    foreach (FarmAnimal animal in Game1.getFarm().getAllFarmAnimals())
                     {
-                        foreach (KeyValuePair<long, FarmAnimal> animal in (Dictionary<long, FarmAnimal>)((AnimalHouse)building.indoors).animals)
-                        {
-                            var happiness = happinessMap[animal.Key];
-                            animal.Value.happiness = happiness;
-
-                            Monitor.Log($"Indoor animal [{animal.Value.displayName}] had its happiness reset to  [{happiness.ToString()}]", LogLevel.Info);
-                        }
+                        happinessMap[animal.myID] = animal.happiness;
                     }
                 }
-                foreach (KeyValuePair<long, FarmAnimal> animal in (Dictionary<long, FarmAnimal>)Game1.getFarm().animals)
+                if (e.NewInt >= 1800)
                 {
-                    happinessMap[animal.Key] = animal.Value.happiness;
-                }
+                    // Each time change after that, if the animal is inside, reset the happiness to the last known good value
+                    foreach (Building building in Game1.getFarm().buildings)
+                    {
+                        if (building.indoors != null && building.indoors.GetType() == typeof(AnimalHouse))
+                        {
+                            foreach (KeyValuePair<long, FarmAnimal> animal in (Dictionary<long, FarmAnimal>)((AnimalHouse)building.indoors).animals)
+                            {
+                                var safetyBonus = false;
+                                int happiness = (int)happinessMap[animal.Key];
+                                if (safetyBonus)
+                                {
+                                    happiness = happiness + animal.Value.happinessDrain;
+                                }
+                                animal.Value.happiness = (byte)happiness;
+                                Monitor.Log($"Indoor animal [{animal.Value.displayName}] had its happiness reset to  [{happiness.ToString()}]", LogLevel.Info);
+                            }
+                        }
+                    }
+                    // If the animal is outside, record a new known good value
+                    foreach (KeyValuePair<long, FarmAnimal> animal in (Dictionary<long, FarmAnimal>)Game1.getFarm().animals)
+                    {
+                        happinessMap[animal.Key] = animal.Value.happiness;
+                    }
 
+                }
             }
-            
         }
     }
 }
