@@ -45,13 +45,22 @@ namespace NightChicken
                             foreach (KeyValuePair<long, FarmAnimal> animal in (Dictionary<long, FarmAnimal>)((AnimalHouse)building.indoors).animals)
                             {
                                 var safetyBonus = false;
+								if (!happinessMap.ContainsKey(animal.Key)) {
+									// This should only happen if the user cheats to get a new animal after 6pm
+									happinessMap[animal.Key] = animal.Value.happiness;
+									continue;
+								}
                                 int happiness = (int)happinessMap[animal.Key];
-                                if (safetyBonus)
-                                {
-                                    happiness = happiness + animal.Value.happinessDrain;
-                                }
-                                animal.Value.happiness = (byte)happiness;
-                                Monitor.Log($"Indoor animal [{animal.Value.displayName}] had its happiness reset to  [{happiness.ToString()}]", LogLevel.Info);
+								int newHappiness = (int)animal.Value.happiness;
+								if (newHappiness < happiness) {
+									if (safetyBonus) {
+										// If the user config safetyBonus is enabled, add happiness for being safe in the stable after 6pm
+										happiness = Math.Min(byte.MaxValue, (happiness + animal.Value.happinessDrain));
+									}
+									animal.Value.happiness = (byte)happiness;
+									happinessMap[animal.Key] = (byte)happiness;
+									Monitor.Log ($"Indoor animal [{animal.Value.displayName}] had its happiness reset to [{happiness.ToString()}] from [{newHappiness.ToString()}]", LogLevel.Info);
+								}
                             }
                         }
                     }

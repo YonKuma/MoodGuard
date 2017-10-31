@@ -1,9 +1,9 @@
 ﻿{
-   "Name": "Night Chicken",
+   "Name": "Mood Guard",
    "Author": "YonKuma",
-   "Version": "1.0-alpha.2",
+   "Version": "1.0-alpha.3",
    "Description": "Gets rid of mood drain for animals that are inside after 6pm.",
-   "UniqueID": "YonKuma.NightChicken",
-   "EntryDll": "NightChicken.dll",
+   "UniqueID": "YonKuma.MoodGuard",
+   "EntryDll": "MoodGuard.dll",
    "UpdateKeys": []
 }
