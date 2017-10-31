@@ -1,4 +1,4 @@
-# Night Chicken
+# Mood Guard
 A Stardew Valley mod that prevents animals from losing happiness just because they're inside after 6pm.
 
 # Download
