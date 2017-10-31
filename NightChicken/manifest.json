@@ -1,0 +1,9 @@
+﻿{
+   "Name": "Night Chicken",
+   "Author": "YonKuma",
+   "Version": "1.0-alpha.1",
+   "Description": "<One or two sentences about the mod>",
+   "UniqueID": "YonKuma.NightChicken",
+   "EntryDll": "NightChicken.dll",
+   "UpdateKeys": []
+}
