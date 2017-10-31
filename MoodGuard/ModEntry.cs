@@ -8,7 +8,7 @@ using StardewValley;
 using StardewValley.Buildings;
 using System.Threading.Tasks;
 
-namespace NightChicken
+namespace MoodGuard
 {
     class ModEntry : Mod
     {

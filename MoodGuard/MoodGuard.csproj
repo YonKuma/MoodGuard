@@ -7,8 +7,8 @@
     <ProjectGuid>{60CF1400-2F88-4158-B9AF-0BBF352F4E72}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NightChicken</RootNamespace>
-    <AssemblyName>NightChicken</AssemblyName>
+    <RootNamespace>MoodGuard</RootNamespace>
+    <AssemblyName>MoodGuard</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
