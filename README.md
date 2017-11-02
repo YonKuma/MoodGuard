@@ -21,4 +21,4 @@ There are three different modes that you can choose from:
 * `Maximized` - Animals' happiness will continually be set to maximum (255)
 
 # Download
-This project is currently still in alpha. Downloads can currently be found at the [project releases](https://github.com/YonKuma/NightChicken/releases). Nexus downloads will be available once the first stable version is released.
+Downloads can currently be found at the [project releases](https://github.com/YonKuma/NightChicken/releases).
