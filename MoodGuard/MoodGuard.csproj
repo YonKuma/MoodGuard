@@ -46,6 +46,7 @@
     <Compile Include="ModConfig.cs" />
     <Compile Include="ModEntry.cs" />
     <Compile Include="NightFixConfig.cs" />
+    <Compile Include="ProfessionFixConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
