@@ -2,5 +2,8 @@
 	"NightFix": {
 		"Enabled": true,
 		"Mode": "Standard"
+	},
+	"ProfessionFix": {
+		"Enabled": true
 	}
 }
