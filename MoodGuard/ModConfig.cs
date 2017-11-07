@@ -13,5 +13,7 @@ namespace MoodGuard
         /// Whether animals' happiness should increase when inside after 6pm.
         /// </summary>
         public NightFixConfig NightFix = new NightFixConfig();
+
+        public ProfessionFixConfig ProfessionFix = new ProfessionFixConfig();
     }
 }

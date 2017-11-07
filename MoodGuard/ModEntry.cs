@@ -1,6 +1,8 @@
-﻿using Microsoft.Xna.Framework.Audio;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -48,15 +50,16 @@ namespace MoodGuard
                 Monitor.Log($"Mode is [{nightFixMode.ToString()}]", LogLevel.Info);
                 happinessMap = new Dictionary<long, byte>();
                 TimeEvents.TimeOfDayChanged += this.TimeEvents_TimeOfDayChanged;
+            }
+            if (Config.ProfessionFix.Enabled)
+            {
                 InputEvents.ButtonPressed += this.InputEvents_ButtonPressed;
             }
         }
 
         private void InputEvents_ButtonPressed(object sender, EventArgsInput e)
         {
-            Monitor.Log($"Button pressed", LogLevel.Info);
-            
-            Game1.oldMouseState = new MouseState(Game1.oldMouseState.X, Game1.oldMouseState.Y, Game1.oldMouseState.ScrollWheelValue, Game1.oldMouseState.LeftButton, ButtonState.Released, Game1.oldMouseState.RightButton, Game1.oldMouseState.XButton1, Game1.oldMouseState.XButton2);
+            // The goal is to make this script minimally invasive, so it's only called when a fix needs to be made
             // Activation Requirements:
             // * Is Action Button
             // * Is within player's reach
@@ -74,7 +77,6 @@ namespace MoodGuard
                     StardewValley.Farmer farmer = Game1.player;
                     if (farmer.FarmerSprite.pauseForSingleAnimation)
                         return;
-                    Monitor.Log($"Tile within player radius X: [{grabTile.X}] Y: [{grabTile.Y}]", LogLevel.Info);
                     if (farmer.professions.Contains(2) || farmer.professions.Contains(3))
                     {
                         Microsoft.Xna.Framework.Rectangle rectangle = new Microsoft.Xna.Framework.Rectangle((int)grabTile.X * Game1.tileSize, (int)grabTile.Y * Game1.tileSize, Game1.tileSize, Game1.tileSize);
@@ -93,10 +95,9 @@ namespace MoodGuard
                                            )
                                        )
                                     {
-                                        e.SuppressButton();
-                                        Monitor.Log($"Pet override triggered", LogLevel.Info);
+                                        Monitor.Log($"Profession overflow prevented", LogLevel.Info);
                                         this.pet(animal.Value, farmer);
-                                        return;
+                                        this.SuppressButton(e.Button);
                                     }
                                 }
                             }
@@ -115,10 +116,9 @@ namespace MoodGuard
                                 {
                                     if (animal.Value.GetBoundingBox().Intersects(rectangle))
                                     {
-                                        e.SuppressButton();
-                                        Monitor.Log($"Pet override triggered", LogLevel.Info);
+                                        Monitor.Log($"Profession overflow prevented", LogLevel.Info);
                                         this.pet(animal.Value, farmer);
-                                        return;
+                                        this.SuppressButton(e.Button);
                                     }
                                 }
                             }
@@ -179,15 +179,116 @@ namespace MoodGuard
             animal.daysToLay = (byte)2;
         }
 
+        public void SuppressButton(SButton button)
+        {
+            // SuppressButton copyright Pathoschild (https://github.com/Pathoschild)
+            // Used and modified with permission
+            // keyboard
+            if (button.TryGetKeyboard(out Keys key))
+                Game1.oldKBState = new KeyboardState(Game1.oldKBState.GetPressedKeys().Union(new[] { key }).ToArray());
+
+            // controller
+            else if (button.TryGetController(out Buttons controllerButton))
+            {
+                var newState = GamePad.GetState(PlayerIndex.One);
+                var thumbsticks = Game1.oldPadState.ThumbSticks;
+                var triggers = Game1.oldPadState.Triggers;
+                var buttons = Game1.oldPadState.Buttons;
+                var dpad = Game1.oldPadState.DPad;
+
+                switch (controllerButton)
+                {
+                    // d-pad
+                    case Buttons.DPadDown:
+                        dpad = new GamePadDPad(dpad.Up, newState.DPad.Down, dpad.Left, dpad.Right);
+                        break;
+                    case Buttons.DPadLeft:
+                        dpad = new GamePadDPad(dpad.Up, dpad.Down, newState.DPad.Left, dpad.Right);
+                        break;
+                    case Buttons.DPadRight:
+                        dpad = new GamePadDPad(dpad.Up, dpad.Down, dpad.Left, newState.DPad.Right);
+                        break;
+                    case Buttons.DPadUp:
+                        dpad = new GamePadDPad(newState.DPad.Up, dpad.Down, dpad.Left, dpad.Right);
+                        break;
+
+                    // trigger
+                    case Buttons.LeftTrigger:
+                        triggers = new GamePadTriggers(newState.Triggers.Left, triggers.Right);
+                        break;
+                    case Buttons.RightTrigger:
+                        triggers = new GamePadTriggers(triggers.Left, newState.Triggers.Right);
+                        break;
+
+                    // thumbstick
+                    case Buttons.LeftThumbstickDown:
+                    case Buttons.LeftThumbstickLeft:
+                    case Buttons.LeftThumbstickRight:
+                    case Buttons.LeftThumbstickUp:
+                        thumbsticks = new GamePadThumbSticks(newState.ThumbSticks.Left, thumbsticks.Right);
+                        break;
+                    case Buttons.RightThumbstickDown:
+                    case Buttons.RightThumbstickLeft:
+                    case Buttons.RightThumbstickRight:
+                    case Buttons.RightThumbstickUp:
+                        thumbsticks = new GamePadThumbSticks(newState.ThumbSticks.Right, thumbsticks.Left);
+                        break;
+
+                    // buttons
+                    default:
+                        var mask =
+                            (buttons.A == ButtonState.Pressed ? Buttons.A : 0)
+                            | (buttons.B == ButtonState.Pressed ? Buttons.B : 0)
+                            | (buttons.Back == ButtonState.Pressed ? Buttons.Back : 0)
+                            | (buttons.BigButton == ButtonState.Pressed ? Buttons.BigButton : 0)
+                            | (buttons.LeftShoulder == ButtonState.Pressed ? Buttons.LeftShoulder : 0)
+                            | (buttons.LeftStick == ButtonState.Pressed ? Buttons.LeftStick : 0)
+                            | (buttons.RightShoulder == ButtonState.Pressed ? Buttons.RightShoulder : 0)
+                            | (buttons.RightStick == ButtonState.Pressed ? Buttons.RightStick : 0)
+                            | (buttons.Start == ButtonState.Pressed ? Buttons.Start : 0)
+                            | (buttons.X == ButtonState.Pressed ? Buttons.X : 0)
+                            | (buttons.Y == ButtonState.Pressed ? Buttons.Y : 0);
+                        mask = mask ^ controllerButton;
+                        buttons = new GamePadButtons(mask);
+                        break;
+                }
+
+                Game1.oldPadState = new GamePadState(thumbsticks, triggers, buttons, dpad);
+            }
+            // mouse
+            else if (button.TryGetStardewInput(out InputButton inputButton))
+            {
+                if (inputButton.mouseLeft)
+                {
+                    Game1.oldMouseState = new MouseState(
+                        Game1.oldMouseState.X,
+                        Game1.oldMouseState.Y,
+                        Game1.oldMouseState.ScrollWheelValue,
+                        ButtonState.Pressed,
+                        Game1.oldMouseState.MiddleButton,
+                        Game1.oldMouseState.RightButton,
+                        Game1.oldMouseState.XButton1,
+                        Game1.oldMouseState.XButton2
+                    );
+                }
+                else if (inputButton.mouseRight)
+                {
+                    Game1.oldMouseState = new MouseState(
+                        Game1.oldMouseState.X,
+                        Game1.oldMouseState.Y,
+                        Game1.oldMouseState.ScrollWheelValue,
+                        Game1.oldMouseState.LeftButton,
+                        Game1.oldMouseState.MiddleButton,
+                        ButtonState.Pressed,
+                        Game1.oldMouseState.XButton1,
+                        Game1.oldMouseState.XButton2
+                    );
+                }
+            }
+        }
+
         private void TimeEvents_TimeOfDayChanged(object sender, EventArgsIntChanged e)
         {
-            foreach (FarmAnimal animal in Game1.getFarm().getAllFarmAnimals())
-            {
-                Monitor.Log($"[{animal.displayName}] has happiness [{animal.happiness.ToString()}]", LogLevel.Info);
-
-            }
-            return;
-
             if (nightFixMode == NightFixMode.Maximized)
             {
                 foreach (FarmAnimal animal in Game1.getFarm().getAllFarmAnimals())
